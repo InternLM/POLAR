@@ -10,9 +10,9 @@
 [![vllm](https://img.shields.io/badge/vllm-blue)](https://github.com/vllm-project/vllm/)
 
 
-[🤗 HuggingFace](https://huggingface.co/internlm) |
+[🤗 HuggingFace](https://huggingface.co/collections/internlm/polar-68693f829d2e83ac5e6e124a) |
 [🤖 ModelScope](https://www.modelscope.cn/organization/Shanghai_AI_Laboratory) |
-[📜 Paper](https://arxiv.org/abs/xxxxxx)<br>
+[📜 Paper](https://arxiv.org/abs/2507.05197)<br>
 
 
 [English](./README.md) |
@@ -50,7 +50,7 @@ We release POLAR reward models in sizes of 1.8B and 7B parameters. The "base" mo
 
 # Performance
 
-We conducted a comprehensive evaluation of POLAR via the Proximal Policy Optimization (PPO) algorithm. We evaluate the downstream RL performances of four different policy models using [OpenCompass](https://github.com/internLM/OpenCompass/). More details are available in our [Paper](https://arxiv.org/abs/xxxxxx).
+We conducted a comprehensive evaluation of POLAR via the Proximal Policy Optimization (PPO) algorithm. We evaluate the downstream RL performances of four different policy models using [OpenCompass](https://github.com/internLM/OpenCompass/). More details are available in our [Paper](https://arxiv.org/abs/2507.05197).
 
 <img src="./assets/result.png"/><br>
 
@@ -381,5 +381,10 @@ Code and model weights are licensed under Apache-2.0.
 # Citation
 
 ```
-TBC
+@article{dou2025pretrained,
+  title={Pre-Trained Policy Discriminators are General Reward Models},
+  author={Dou, Shihan and Liu, Shichun and Yang, Yuming and Zou, Yicheng and Zhou, Yunhua and Xing, Shuhao and Huang, Chenhao and Ge, Qiming and Song, Demin and Lv, Haijun and others},
+  journal={arXiv preprint arXiv:2507.05197},
+  year={2025}
+}
 ```

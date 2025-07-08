@@ -10,9 +10,9 @@
 [![vllm](https://img.shields.io/badge/vllm-blue)](https://github.com/vllm-project/vllm/)
 
 
-[🤗 HuggingFace](https://huggingface.co/internlm) |
+[🤗 HuggingFace](https://huggingface.co/collections/internlm/polar-68693f829d2e83ac5e6e124a) |
 [🤖 ModelScope](https://www.modelscope.cn/organization/Shanghai_AI_Laboratory) |
-[📜 Paper](https://arxiv.org/abs/xxxxxx)<br>
+[📜 Paper](https://arxiv.org/abs/2507.05197)<br>
 
 
 [English](./README.md) |
@@ -49,7 +49,7 @@ POLAR 是一个经过大规模预训练的奖励模型，在训练范式和模�
 
 # 性能
 
-我们通过 Proximal Policy Optimization（PPO）算法对 POLAR 的使用效果进行了验证，评测了四种语言模型的下游强化学习性能，评测工具是 [OpenCompass](https://github.com/internLM/OpenCompass/) 。详细信息请参阅[论文](https://arxiv.org/abs/xxxxxx)。
+我们通过 Proximal Policy Optimization（PPO）算法对 POLAR 的使用效果进行了验证，评测了四种语言模型的下游强化学习性能，评测工具是 [OpenCompass](https://github.com/internLM/OpenCompass/) 。详细信息请参阅[论文](https://arxiv.org/abs/2507.05197)。
 
 <img src="./assets/result.png"/><br>
 
@@ -394,5 +394,10 @@ Reward: -7.23046875
 # 引用
 
 ```
-TBC
+@article{dou2025pretrained,
+  title={Pre-Trained Policy Discriminators are General Reward Models},
+  author={Dou, Shihan and Liu, Shichun and Yang, Yuming and Zou, Yicheng and Zhou, Yunhua and Xing, Shuhao and Huang, Chenhao and Ge, Qiming and Song, Demin and Lv, Haijun and others},
+  journal={arXiv preprint arXiv:2507.05197},
+  year={2025}
+}
 ```
