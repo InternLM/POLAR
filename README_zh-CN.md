@@ -156,7 +156,7 @@ print(rewards)
 
 #### 环境依赖
 
-- sglang >= 0.4.3.post4
+- 0.4.3.post4 <= sglang <= 0.4.4.post1
 
 #### 启动服务端
 
