@@ -120,6 +120,7 @@ batch = tokenizer(encoded_data, return_tensors='pt', padding=True).to('cuda')
 outputs = model(**batch)
 rewards = outputs[0].squeeze(-1).cpu().tolist()
 print(rewards)
+# [-0.5702977776527405, -11.030370712280273] for previous example data
 ```
 
 ### Inference with lmdeploy
