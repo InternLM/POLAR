@@ -158,7 +158,7 @@ print(rewards)
 
 #### Requirements
 
-- sglang >= 0.4.3.post4
+-  0.4.3.post4 <= sglang <= 0.4.4.post1
 
 #### Server Launch
 
