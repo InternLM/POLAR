@@ -69,6 +69,12 @@ POLAR 是一个经过大规模预训练的奖励模型，在训练范式和模�
 - 通过 pip 安装 xtuner：
 
   ```shell
+  pip install 'xtuner[deepspeed]'==0.2.0
+  ```
+
+- 通过最新源码安装 xtuner：
+
+  ```shell
   pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
   ```
 

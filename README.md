@@ -70,6 +70,12 @@ You could employ the latest [xtuner](https://github.com/InternLM/xtuner) to fine
 - Install xtuner via pip
 
   ```shell
+  pip install 'xtuner[deepspeed]'==0.2.0
+  ```
+
+- Install xtuner from the latest source code
+
+  ```shell
   pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
   ```
 
