@@ -8,6 +8,7 @@
 [![lmdeploy](https://img.shields.io/badge/lmdeploy-blue)](https://github.com/InternLM/lmdeploy/)
 [![sglang](https://img.shields.io/badge/sglang-blue)](https://github.com/sgl-project/sglang/)
 [![vllm](https://img.shields.io/badge/vllm-blue)](https://github.com/vllm-project/vllm/)
+[![verl](https://img.shields.io/badge/verl-blue)](https://github.com/volcengine/verl)
 
 
 [🤗 HuggingFace](https://huggingface.co/collections/internlm/polar-68693f829d2e83ac5e6e124a) |
@@ -19,6 +20,12 @@
 [简体中文](./README_zh-CN.md)
 
 </div>
+
+# Latest News 🎉
+
+- **[2025/09]** POLAR now supports RFT (Reinforcement Fine-tuning) training using VERL.
+
+<br>
 
 # Introduction
 
@@ -56,28 +63,19 @@ We conducted a comprehensive evaluation of POLAR via the Proximal Policy Optimiz
 
 # Quick Start
 
-## Installation
+This repository provides a `RewardModelClient` class (`src/polar/reward_func.py`) for querying reward values from a remote POLAR server. It handles input encoding, communication with different backends (sglang, vllm, lmdeploy), and returns the reward scores.
 
-You could employ the latest [xtuner](https://github.com/InternLM/xtuner) to fine-tune and use POLAR. Xtuner is an efficient, flexible and full-featured toolkit for fine-tuning LLMs.
+```python
+from src.polar import RewardModelClient
+```
 
-- It is recommended to build a Python-3.10 virtual environment using conda
+Optionally, you can also use [XTuner](https://github.com/InternLM/xtuner)’s implementation by installing XTuner and importing the class from XTuner.
 
-  ```bash
-  conda create --name xtuner-env python=3.10 -y
-  conda activate xtuner-env
-  ```
+```python
+from xtuner.utils import RewardModelClient
+```
 
-- Install xtuner via pip
-
-  ```shell
-  pip install 'xtuner[deepspeed]'==0.2.0
-  ```
-
-- Install xtuner from the latest source code
-
-  ```shell
-  pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
-  ```
+For XTuner installation instructions, see the [Fine-tune](#fine-tune) section below.
 
 ## Inference
 
@@ -109,7 +107,8 @@ To load the POLAR model using transformers, use the following code to get reward
 
 ```python
 from transformers import AutoModel, AutoTokenizer
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 model_name = 'internlm/POLAR-7B'
 
@@ -145,7 +144,8 @@ lmdeploy serve api_server internlm/POLAR-7B --backend pytorch --server-port 3000
 #### Client Request
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="lmdeploy",
@@ -176,7 +176,8 @@ python3 -m sglang.launch_server --model internlm/POLAR-7B --trust-remote-code --
 #### Client Request
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="sglang",
@@ -207,7 +208,8 @@ vllm serve internlm/POLAR-7B --task=reward --trust-remote-code --tensor-parallel
 #### Client Request
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="vllm",
@@ -223,7 +225,91 @@ rewards = client.vllm_request_reward(encoded_data)
 print(rewards)
 ```
 
+## RFT with VERL
+
+POLAR can be easily integrated into various reinforcement learning frameworks. This repository provides an example showing how to use [VERL](https://github.com/volcengine/verl) for reinforcement fine-tuning (RFT) with POLAR reward models.
+
+### Environment Setup
+
+Please refer to the [VERL official installation guide](https://github.com/volcengine/verl) for detailed environment setup instructions.
+
+> **Note**: For training Qwen2.5 series, we recommend using the inference backend **vLLM 0.8.3** and **Transformers 4.50.3** for optimal performance. A higher version of transformers may cause training instability of Qwen2.5 series.
+
+### Data Format
+
+Training data should be in Parquet format with the following structure:
+```python
+{
+    "data_source": "dataset_name",
+    "prompt": [{"role": "user", "content": "..."}, ...],
+    "ability": "alility_type",
+    "reward_model": {
+        "style": "polar",
+        "ground_truth": [{"role": "assistant", "content": "..."}]
+    }
+    "extra_info": {
+        # The same as prompt. The purpose is for compatibible usage of verl and polar.
+        "prompt": [{"role": "user", "content": "..."}, ...],
+    }
+}
+```
+
+### Training steps
+
+- **Step 1:** POLAR Deployment
+
+  Deploy the POLAR reward model following the above [Inference](#inference) instructions. Update the server configuration in `src/polar/reward_func.py`:
+
+  ```python
+  # Config reward model server
+  ADDRESS = "your_server_ip:port"  # Modify according to your server address
+  SERVER_TYPE = "sglang"  # Options: "sglang", "vllm", "lmdeploy"
+  MODEL_PATH = "internlm/POLAR-7B"
+  ```
+
+- **Step 2:** Data Preparation
+
+  Prepare your training data in Parquet format. You can use the provided data preprocessing scripts:
+
+  ```bash
+  # Example: Process HH-RLHF dataset
+  python examples/data_preprocess/full_hh_rlhf.py --local_dir ~/data/hh_rlhf
+  ```
+
+- **Step 3:** Configure Training Script
+
+  An example of training script: `examples/ppo/qwen2_5-7b_hh-rlhf.sh`.
+
+- **Step 4:** Run Training
+
+  ```bash
+  cd verl
+  bash ../examples/ppo/qwen2_5-7b_hh-rlhf.sh
+  ```
+
+
 ## Fine-tune
+
+You could employ the latest [xtuner](https://github.com/InternLM/xtuner) to fine-tune POLAR. Xtuner is an efficient, flexible and full-featured toolkit for fine-tuning LLMs.
+
+- It is recommended to build a Python-3.10 virtual environment using conda
+
+  ```bash
+  conda create --name xtuner-env python=3.10 -y
+  conda activate xtuner-env
+  ```
+
+- Install xtuner via pip
+
+  ```shell
+  pip install 'xtuner[deepspeed]'==0.2.0
+  ```
+
+- Install xtuner from the latest source code
+
+  ```shell
+  pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
+  ```
 
 ### Requirements
 
@@ -276,7 +362,8 @@ Unlike traditional reward models, POLAR requires an additional reference traject
 ## Closed-ended questions
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 prompt = "How many 'r's are there in the word 'strawberry'?"
 reference = "There are 3 'r's in the word 'strawberry'. Here's how we can count them: 's', 't', 'r', 'a', 'w', 'b', 'e', 'r', 'r', 'y'. So, the answer is 3."
@@ -332,7 +419,8 @@ Reward: -10.8203125
 
 ## Open-ended questions
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 prompt = "Summarize the first book of Frank Herbert’s Dune in one witty short sentence."
 reference = "Royal teen discovers that life’s a beach—minus the ocean, plus spice, giant sandworms and deadly politics."

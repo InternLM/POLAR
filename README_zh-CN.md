@@ -8,6 +8,7 @@
 [![lmdeploy](https://img.shields.io/badge/lmdeploy-blue)](https://github.com/InternLM/lmdeploy/)
 [![sglang](https://img.shields.io/badge/sglang-blue)](https://github.com/sgl-project/sglang/)
 [![vllm](https://img.shields.io/badge/vllm-blue)](https://github.com/vllm-project/vllm/)
+[![verl](https://img.shields.io/badge/verl-blue)](https://github.com/volcengine/verl)
 
 
 [🤗 HuggingFace](https://huggingface.co/collections/internlm/polar-68693f829d2e83ac5e6e124a) |
@@ -19,6 +20,12 @@
 [简体中文](./README_zh-CN.md)
 
 </div>
+
+# 最新进展 🎉
+
+- **[2025/09]** POLAR 现已支持使用 VERL 进行 RFT（强化微调）训练。
+
+<br>
 
 # 简介
 
@@ -57,26 +64,20 @@ POLAR 是一个经过大规模预训练的奖励模型，在训练范式和模�
 
 ## 安装
 
-推荐使用最新的 [xtuner](https://github.com/InternLM/xtuner) 来微调和使用 POLAR。xtuner 是一个高效、灵活、具有多种使用特性的语言模型微调工具。
+本仓库提供了一个`RewardModelClient`类（`src/polar/reward_func.py`），用于向远程 POLAR 服务请求奖励分数。该类负责对输入的文本进行编码，支持与多种推理后端（sglang、vllm、lmdeploy）进行通信，并返回奖励分数。
 
-- 建议使用 conda 创建 Python-3.10 虚拟环境：
+```python
+from src.polar import RewardModelClient
+```
 
-  ```bash
-  conda create --name xtuner-env python=3.10 -y
-  conda activate xtuner-env
-  ```
+您也可以选择使用 [XTuner](https://github.com/InternLM/xtuner) 提供的实现，只需安装 XTuner 并从中导入该类：
 
-- 通过 pip 安装 xtuner：
+```python
+from xtuner.utils import RewardModelClient
+```
 
-  ```shell
-  pip install 'xtuner[deepspeed]'==0.2.0
-  ```
+关于 XTuner 的安装方法，请参考下方的[偏好微调](#偏好微调)部分。
 
-- 通过最新源码安装 xtuner：
-
-  ```shell
-  pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
-  ```
 
 ## 推理
 
@@ -107,7 +108,8 @@ data = [
 
 ```python
 from transformers import AutoModel, AutoTokenizer
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 model_name = 'internlm/POLAR-7B'
 
@@ -143,7 +145,8 @@ lmdeploy serve api_server internlm/POLAR-7B --backend pytorch --server-port 3000
 #### 客户端请求示例
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="lmdeploy",
@@ -174,7 +177,8 @@ python3 -m sglang.launch_server --model internlm/POLAR-7B --trust-remote-code --
 #### 客户端请求示例
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="sglang",
@@ -205,7 +209,8 @@ vllm serve internlm/POLAR-7B --task=reward --trust-remote-code --tensor-parallel
 #### 客户端请求示例
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 client = RewardModelClient("internlm/POLAR-7B",
                            server_type="vllm",
@@ -221,7 +226,90 @@ rewards = client.vllm_request_reward(encoded_data)
 print(rewards)
 ```
 
+## 使用 VERL 进行强化微调（RFT）
+
+POLAR 可以方便地接入各类强化学习训练框架。本仓库提供了一个示例，演示如何结合 [VERL](https://github.com/volcengine/verl) 与 POLAR 奖励模型进行强化微调（RFT）。
+
+### 环境配置
+
+详细的环境配置方法请参考 [VERL 官方安装指南](https://github.com/volcengine/verl)。
+
+> **注意**: 在训练 Qwen2.5 系列模型时，推荐使用推理后端 **vLLM 0.8.3** 搭配 **Transformers 4.50.3**，以获得最佳性能。更高版本的 Transformers 可能会导致 Qwen2.5 系列训练不稳定。
+
+### 数据格式
+
+训练数据应为 Parquet 格式，结构如下：
+```python
+{
+    "data_source": "dataset_name",
+    "prompt": [{"role": "user", "content": "..."}, ...],
+    "ability": "alility_type",
+    "reward_model": {
+        "style": "polar",
+        "ground_truth": [{"role": "assistant", "content": "..."}]
+    }
+    "extra_info": {
+        # 与 prompt 相同，用于兼容 VERL 与 POLAR
+        "prompt": [{"role": "user", "content": "..."}, ...],
+    }
+}
+```
+
+### 训练步骤
+
+- **Step 1:** 部署 POLAR
+
+  按照上述[推理](#推理)部分的说明，启动 POLAR 奖励模型服务，并在 `src/polar/reward_func.py` 中更新服务配置：
+
+  ```python
+  # 配置奖励模型服务
+  ADDRESS = "your_server_ip:port"  # 修改为实际的服务器地址
+  SERVER_TYPE = "sglang"  # 可选："sglang", "vllm", "lmdeploy"
+  MODEL_PATH = "internlm/POLAR-7B"
+  ```
+
+- **Step 2:** 数据准备
+
+  将训练数据准备为 Parquet 格式，可使用提供的预处理脚本：
+
+  ```bash
+  # 示例：处理 HH-RLHF 数据集
+  python examples/data_preprocess/full_hh_rlhf.py --local_dir ~/data/hh_rlhf
+  ```
+
+- **Step 3:** 配置训练脚本
+
+  示例训练脚本可参考：`examples/ppo/qwen2_5-7b_hh-rlhf.sh`.
+
+- **Step 4:** 启动训练
+
+  ```bash
+  cd verl
+  bash ../examples/ppo/qwen2_5-7b_hh-rlhf.sh
+  ```
+
 ## 偏好微调
+
+推荐使用最新的 [xtuner](https://github.com/InternLM/xtuner) 来微调 POLAR。xtuner 是一个高效、灵活、具有多种使用特性的语言模型微调工具。
+
+- 建议使用 conda 创建 Python-3.10 虚拟环境：
+
+  ```bash
+  conda create --name xtuner-env python=3.10 -y
+  conda activate xtuner-env
+  ```
+
+- 通过 pip 安装 xtuner：
+
+  ```shell
+  pip install 'xtuner[deepspeed]'==0.2.0
+  ```
+
+- 通过最新源码安装 xtuner：
+
+  ```shell
+  pip install 'git+https://github.com/InternLM/xtuner.git@main#egg=xtuner[deepspeed]'
+  ```
 
 ### 环境依赖
 
@@ -274,7 +362,8 @@ print(rewards)
 ## 客观问答
 
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 prompt = "单词“strawberry”中有几个“r”？"
 reference = "单词“strawberry”中包含3个字母“r”。我们可以逐字母数一下：“s”、“t”、“r”、“a”、“w”、“b”、“e”、“r”、“r”、“y”。因此，答案是3。"
@@ -330,7 +419,8 @@ Reward: -11.921875
 
 ## 主观问答
 ```python
-from xtuner.utils import RewardModelClient
+from src.polar import RewardModelClient
+# from xtuner.utils import RewardModelClient
 
 prompt = "帮我想3个形容雨很大的成语，要求不能重复。"
 reference = "1. 倾盆大雨 2. 暴雨如注 3. 瓢泼大雨"
