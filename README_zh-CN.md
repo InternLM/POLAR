@@ -23,9 +23,9 @@
 
 # 最新进展 🎉
 
+- **[2025/09]** POLAR 论文现已被 Neurips 2025 会议接收。
 - **[2025/09]** POLAR 现已支持使用 VERL 进行 RFT（强化微调）训练。
 
-<br>
 
 # 简介
 
@@ -287,6 +287,31 @@ POLAR 可以方便地接入各类强化学习训练框架。本仓库提供了�
   cd verl
   bash ../examples/ppo/qwen2_5-7b_hh-rlhf.sh
   ```
+
+### 参考结果
+
+这里展示了使用 POLAR-7B 对 Qwen3-8B 进行强化微调的结果，使用了我们提供的[官方配置](https://github.com/InternLM/POLAR/blob/main/examples/ppo/qwen3-8b_general.sh), 以及开源的 [AM-DeepSeek-R1-0528-Distilled](https://huggingface.co/datasets/a-m-team/AM-DeepSeek-R1-0528-Distilled) 数据集. 评估过程由 [OpenCompass](https://github.com/internLM/OpenCompass/) 完成。
+
+| 评测集 | Qwen3-8B 思考模式 | Qwen3-8B 思考模式 (RFT) |
+| --- | ---- | ---- |
+| alignment_bench | 7.04 | 7.48 |
+| alpaca_eval | 87.20 | 95.40 | 
+| arenahard | 83.15 | 89.45 | 
+| followbench | 0.93 | 0.95 | 
+| mtbench | 8.73 | 8.78 | 
+| wildbench | 58.43 | 72.09 |
+| mmlu | 86.06 | 86.58 | 
+| mmlu_pro | 73.66 | 75.19 |
+| cmmlu | 82.72 | 83.07 | 
+| bbeh | 29.56 | 33.30 |
+| korbench | 73.16 | 75.00 |
+| gpqa | 61.05 | 63.07 |
+| supergpqa | 47.82 | 49.67 |
+| olympiadbench | 69.90 | 70.45 |
+| aime2024 | 75.52 | 75.83 |
+| aime2025 | 67.50 | 68.71 |
+| mbpp | 83.66 | 93.00 | 
+| lcb-code | 46.86 | 48.57 |
 
 ## 偏好微调
 

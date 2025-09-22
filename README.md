@@ -23,9 +23,9 @@
 
 # Latest News 🎉
 
+- **[2025/09]** Our POLAR paper has been accepted by Neurips 2025.
 - **[2025/09]** POLAR now supports RFT (Reinforcement Fine-tuning) training using VERL.
 
-<br>
 
 # Introduction
 
@@ -286,6 +286,31 @@ Training data should be in Parquet format with the following structure:
   cd verl
   bash ../examples/ppo/qwen2_5-7b_hh-rlhf.sh
   ```
+
+### Results
+
+Here we show the RFT results of Qwen3-8B trained by our [official configs](https://github.com/InternLM/POLAR/blob/main/examples/ppo/qwen3-8b_general.sh), with the public [AM-DeepSeek-R1-0528-Distilled](https://huggingface.co/datasets/a-m-team/AM-DeepSeek-R1-0528-Distilled) dataset. We use [OpenCompass](https://github.com/internLM/OpenCompass/) for evaluation.
+
+| Benchmark | Qwen3-8B w. thinking | Qwen3-8B w. thinking (RFT) |
+| --- | ---- | ---- |
+| alignment_bench | 7.04 | 7.48 |
+| alpaca_eval | 87.20 | 95.40 | 
+| arenahard | 83.15 | 89.45 | 
+| followbench | 0.93 | 0.95 | 
+| mtbench | 8.73 | 8.78 | 
+| wildbench | 58.43 | 72.09 |
+| mmlu | 86.06 | 86.58 | 
+| mmlu_pro | 73.66 | 75.19 |
+| cmmlu | 82.72 | 83.07 | 
+| bbeh | 29.56 | 33.30 |
+| korbench | 73.16 | 75.00 |
+| gpqa | 61.05 | 63.07 |
+| supergpqa | 47.82 | 49.67 |
+| olympiadbench | 69.90 | 70.45 |
+| aime2024 | 75.52 | 75.83 |
+| aime2025 | 67.50 | 68.71 |
+| mbpp | 83.66 | 93.00 | 
+| lcb-code | 46.86 | 48.57 |
 
 
 ## Fine-tune
