@@ -1,5 +1,5 @@
 #!/bin/bash
-# Verl PPO training script for Qwen2.5-7B
+# Verl PPO training script for Qwen3-8B
 set -x
 
 # Parameters from original script

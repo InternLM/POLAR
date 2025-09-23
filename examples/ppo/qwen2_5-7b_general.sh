@@ -1,5 +1,5 @@
 #!/bin/bash
-# Verl PPO training script for llama3.1-8B
+# Verl PPO training script for Qwen2.5-7B
 set -x
 
 # Parameters from original script
